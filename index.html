@@ -65,6 +65,8 @@
   <div class="chat-footer">Calden Viajes · Santa Rosa, La Pampa · +33 años de experiencia</div>
 </div>
 <script>
+// URL de tu backend en Railway. El widget solo le habla a esta ruta /chat,
+// nunca a Anthropic directamente — la key vive segura en el servidor.
 const BACKEND_URL = 'https://whatsapp-agentkit-production-0bba.up.railway.app/chat';
 
 let hist = [], busy = false;
