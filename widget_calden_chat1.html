@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calden Viajes — Asistente de Viajes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --verde: #2D6A4F; --verde-claro: #40916C; --verde-suave: #D8F3DC; --arena: #F8F4ED; --arena-oscura: #EDE8DF; --texto: #1C1C1C; --texto-suave: #5A5A5A; --blanco: #FFFFFF; --borde: #DDD8CF; --radio: 16px; }
+  body { font-family: 'Inter', sans-serif; background: var(--arena); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .chat-card { width: 100%; max-width: 480px; background: var(--blanco); border-radius: var(--radio); box-shadow: 0 2px 16px rgba(45,106,79,0.10); display: flex; flex-direction: column; height: 620px; overflow: hidden; border: 1px solid var(--borde); }
+  .chat-header { background: var(--verde); padding: 18px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--verde-suave); display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 600; font-size: 18px; color: var(--verde); flex-shrink: 0; }
+  .header-info { flex: 1; }
+  .header-nombre { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; color: var(--blanco); line-height: 1.2; }
+  .header-estado { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  .dot-online { width: 7px; height: 7px; background: #74C69D; border-radius: 50%; display: inline-block; }
+  .header-logo { font-family: 'Lora', serif; font-size: 11px; color: rgba(255,255,255,0.6); text-align: right; line-height: 1.4; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; background: var(--arena); scroll-behavior: smooth; }
+  .msg { display: flex; flex-direction: column; max-width: 85%; gap: 4px; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.bot { align-self: flex-start; align-items: flex-start; }
+  .bubble { padding: 11px 15px; border-radius: 14px; font-size: 14px; line-height: 1.55; color: var(--texto); }
+  .msg.bot .bubble { background: var(--blanco); border: 1px solid var(--borde); border-bottom-left-radius: 4px; }
+  .msg.user .bubble { background: var(--verde); color: var(--blanco); border-bottom-right-radius: 4px; }
+  .msg-time { font-size: 11px; color: var(--texto-suave); opacity: 0.7; padding: 0 4px; }
+  .typing-dots { display: flex; align-items: center; gap: 4px; padding: 12px 15px; background: var(--blanco); border: 1px solid var(--borde); border-radius: 14px; border-bottom-left-radius: 4px; width: fit-content; }
+  .typing-dots span { width: 7px; height: 7px; background: var(--verde-claro); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-5px); opacity: 1; } }
+  .quick-replies { display: flex; flex-wrap: wrap; gap: 7px; padding: 4px 0 0; }
+  .quick-btn { background: var(--verde-suave); border: 1px solid rgba(45,106,79,0.2); color: var(--verde); font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: background 0.15s, transform 0.1s; font-family: 'Inter', sans-serif; }
+  .quick-btn:hover { background: var(--verde); color: var(--blanco); transform: translateY(-1px); }
+  .chat-input-area { padding: 14px 16px; background: var(--blanco); border-top: 1px solid var(--borde); display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; }
+  .chat-input { flex: 1; border: 1.5px solid var(--borde); border-radius: 24px; padding: 10px 16px; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--texto); background: var(--arena); outline: none; resize: none; max-height: 100px; line-height: 1.4; transition: border-color 0.15s; }
+  .chat-input:focus { border-color: var(--verde-claro); }
+  .chat-input::placeholder { color: var(--texto-suave); opacity: 0.7; }
+  .send-btn { width: 42px; height: 42px; background: var(--verde); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, transform 0.1s; flex-shrink: 0; }
+  .send-btn:hover { background: var(--verde-claro); transform: scale(1.05); }
+  .send-btn:disabled { background: var(--borde); cursor: not-allowed; transform: none; }
+  .send-btn svg { width: 18px; height: 18px; fill: white; }
+  .chat-footer { padding: 8px 16px; background: var(--blanco); border-top: 1px solid var(--arena-oscura); text-align: center; font-size: 11px; color: var(--texto-suave); opacity: 0.7; flex-shrink: 0; }
+  .error-msg { background: #FFF0F0; border: 1px solid #FFCCCC; color: #C0392B; padding: 10px 14px; border-radius: 10px; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="chat-card">
+  <div class="chat-header">
+    <div class="avatar">V</div>
+    <div class="header-info">
+      <div class="header-nombre">Valentina</div>
+      <div class="header-estado"><span class="dot-online"></span>Asistente de viajes · en línea</div>
+    </div>
+    <div class="header-logo">Calden<br>Viajes</div>
+  </div>
+  <div class="chat-messages" id="messages"></div>
+  <div class="chat-input-area">
+    <textarea class="chat-input" id="userInput" placeholder="Escribí tu consulta o destino..." rows="1"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="chat-footer">Calden Viajes · Santa Rosa, La Pampa · +33 años de experiencia</div>
+</div>
+<script>
+// URL de tu backend en Railway. El widget solo le habla a esta ruta /chat,
+// nunca a Anthropic directamente — la key vive segura en el servidor.
+const BACKEND_URL = 'https://whatsapp-agentkit-production-0bba.up.railway.app/chat';
+
+let hist = [], busy = false;
+window.onload = () => {
+  const h = new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  addMsg('bot','Hola! Soy Valentina, tu asistente de Calden Viajes. Puedo contarte sobre nuestros paquetes o ayudarte a cotizar tu proximo viaje.',h,true);
+  const inp = document.getElementById('userInput');
+  inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,100)+'px';});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+};
+function addMsg(t,txt,h,sug=false){
+  const m=document.getElementById('messages');
+  const w=document.createElement('div'); w.className=`msg ${t}`;
+  const b=document.createElement('div'); b.className='bubble'; b.innerHTML=txt.replace(/\n/g,'<br>');
+  const tm=document.createElement('div'); tm.className='msg-time'; tm.textContent=h;
+  w.appendChild(b); w.appendChild(tm);
+  if(sug&&t==='bot'){
+    const qr=document.createElement('div'); qr.className='quick-replies';
+    ['Ver paquetes','Cotizar viaje','Destinos invierno','Formas de pago'].forEach(s=>{
+      const btn=document.createElement('button'); btn.className='quick-btn'; btn.textContent=s;
+      btn.onclick=()=>{document.getElementById('userInput').value=s;sendMessage();};
+      qr.appendChild(btn);
+    });
+    w.appendChild(qr);
+  }
+  m.appendChild(w); m.scrollTop=m.scrollHeight;
+}
+function showTyping(){const m=document.getElementById('messages');const d=document.createElement('div');d.className='msg bot';d.id='typing';d.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';m.appendChild(d);m.scrollTop=m.scrollHeight;}
+function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+async function sendMessage(){
+  if(busy)return;
+  const inp=document.getElementById('userInput');
+  const txt=inp.value.trim(); if(!txt)return;
+  const h=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  addMsg('user',txt,h); inp.value=''; inp.style.height='auto';
+  busy=true; document.getElementById('sendBtn').disabled=true; showTyping();
+  try{
+    const r=await fetch(BACKEND_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mensaje:txt,historial:hist})
+    });
+    if(!r.ok)throw new Error('Error');
+    const d=await r.json(); const resp=d.respuesta;
+    hist.push({role:'user',content:txt});
+    hist.push({role:'assistant',content:resp});
+    hideTyping();
+    addMsg('bot',resp,new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){
+    hideTyping();
+    const m=document.getElementById('messages');const d=document.createElement('div');d.className='msg bot';
+    d.innerHTML='<div class="error-msg">Problema de conexion. Escribinos por WhatsApp.</div>';
+    m.appendChild(d);m.scrollTop=m.scrollHeight;
+  }finally{busy=false;document.getElementById('sendBtn').disabled=false;inp.focus();}
+}
+</script>
+</body>
+</html>
